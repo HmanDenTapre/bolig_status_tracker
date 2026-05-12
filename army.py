@@ -1,31 +1,70 @@
-import requests
-import time
-import chime
+import asyncio
 from datetime import datetime
-chime.theme('zelda') # Options: 'chime', 'mario', 'zelda'
+
+import aiohttp
 
 maxDateRemoteFormat = "2026-07-15T00:00:00.000Z"
 
 url = "https://as-portal-a-prod884f86a.azurewebsites.net/graphql"
-data = {
-  "operationName": "startHousingReservation",
-  "variables": {
-    "input": {
-      "houseId": "HK32-52",
-      "collectiveHouseIds": [],
-      "language": "en"
-    }
-  },
-  "query": "mutation startHousingReservation($input: StartHousingReservationInput!) {\n  startHousingReservation(input: $input) {\n    ... on StartHousingReservationSuccessPayload {\n      reservationIds\n      __typename\n    }\n    ... on StartHousingReservationErrorPayload {\n      errorMessage {\n        errorCode\n        parameters {\n          parameter\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}"}
 
-headers = {"Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6Iks0NmtHdVZBemxtUDNnMmNpaFV5QWNCT016VHp0TVBOWHFON2ZvYWIwdmMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiIwZDMyMTZkNC0zYTEzLTQ4ZTYtOGY1NS03NzUxZDhjN2QxY2MiLCJpc3MiOiJodHRwczovL3NpdG5ldHRwcm9kYjJjLmIyY2xvZ2luLmNvbS84OGZmNTczMi0yOTYyLTQwZGUtOWZhOS0wNjg0NWY3MDQ0ZGYvdjIuMC8iLCJleHAiOjE3Nzg2MjU1OTksIm5iZiI6MTc3ODYyMTk5OSwic3ViIjoiZjJhYTFjZDctMGZlYy00N2Q4LTk5ZWItZjllYWI3ODQ0NGEwIiwiYXV0aGVudGljYXRpb25Tb3VyY2UiOiJzb2NpYWxJZHBBdXRoZW50aWNhdGlvbiIsImlkcCI6IkZlaWRlIiwiaWRwX2FjY2Vzc190b2tlbiI6IjNhNDg4NzI0LWYxNzItNDg1OC05OGMyLTM1ZTNkMmU3ZTQ2MiIsIm5hbWUiOiJIYXJyeSBMaW5ydWkgWHUiLCJwcm9maWxlX3BpY3R1cmUiOiJodHRwczovL2FwaS5kYXRhcG9ydGVuLm5vL3VzZXJpbmZvL3YxL3VzZXIvbWVkaWEvcDozMzMwODY4My01YTcxLTQwYjEtYjdkYS1jMmVkZTVhYWJiMDkiLCJkYXRhcG9ydGVuVXNlcklkIjoiZmVpZGU6aGFycnlseEBudG51Lm5vIiwiZW1haWxzIjpbImhhcnJ5LmwueHVAbnRudS5ubyJdLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJhenAiOiIxZmQ4Y2YyNS1iMTNiLTRiYmUtYTY3My04MDk3MjUyOTFjOWMiLCJ2ZXIiOiIxLjAiLCJpYXQiOjE3Nzg2MjE5OTl9.oycGF699zKJ-LYfH-sdjf8qerwI6NC_fiJ1VJk0KVggZl7nkLQ0J8rKJFf0HoUg-DY6YJ_fvfye8BYOZ5qk4rmsEAZbqAGQ_99dq9X-ArncMKk_JQTYYxJK0aJuUUlkavHEsiDlagV_xC6hNdiaz15Zatq7OrjrSDOsSCFy-TC2HD1wNe5L3KXro9Mq9Ils2I5vjvuIQF8fKXxS098QswmFmJQWzc2obMNyTcTOgUimOaRvlzXjTtmZUovUR1w2m576smBoJguUUXLbm0ZWtxJ7DwJ5IvUJr078saTAUzF-Cq7TS6cNatFvUw3q5CFqDV-8RgAVnz3MUvkbGpROZOg"
+data = {
+    "operationName": "startHousingReservation",
+    "variables": {
+        "input": {
+            "houseId": "HK32-52",
+            "collectiveHouseIds": [],
+            "language": "en"
+        }
+    },
+    "query": """
+    mutation startHousingReservation($input: StartHousingReservationInput!) {
+      startHousingReservation(input: $input) {
+        ... on StartHousingReservationSuccessPayload {
+          reservationIds
+          __typename
+        }
+        ... on StartHousingReservationErrorPayload {
+          errorMessage {
+            errorCode
+            parameters {
+              parameter
+              __typename
+            }
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+    }
+    """
 }
 
+headers = {
+    "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6Iks0NmtHdVZBemxtUDNnMmNpaFV5QWNCT016VHp0TVBOWHFON2ZvYWIwdmMiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiIwZDMyMTZkNC0zYTEzLTQ4ZTYtOGY1NS03NzUxZDhjN2QxY2MiLCJpc3MiOiJodHRwczovL3NpdG5ldHRwcm9kYjJjLmIyY2xvZ2luLmNvbS84OGZmNTczMi0yOTYyLTQwZGUtOWZhOS0wNjg0NWY3MDQ0ZGYvdjIuMC8iLCJleHAiOjE3Nzg2MjU1OTksIm5iZiI6MTc3ODYyMTk5OSwic3ViIjoiZjJhYTFjZDctMGZlYy00N2Q4LTk5ZWItZjllYWI3ODQ0NGEwIiwiYXV0aGVudGljYXRpb25Tb3VyY2UiOiJzb2NpYWxJZHBBdXRoZW50aWNhdGlvbiIsImlkcCI6IkZlaWRlIiwiaWRwX2FjY2Vzc190b2tlbiI6IjNhNDg4NzI0LWYxNzItNDg1OC05OGMyLTM1ZTNkMmU3ZTQ2MiIsIm5hbWUiOiJIYXJyeSBMaW5ydWkgWHUiLCJwcm9maWxlX3BpY3R1cmUiOiJodHRwczovL2FwaS5kYXRhcG9ydGVuLm5vL3VzZXJpbmZvL3YxL3VzZXIvbWVkaWEvcDozMzMwODY4My01YTcxLTQwYjEtYjdkYS1jMmVkZTVhYWJiMDkiLCJkYXRhcG9ydGVuVXNlcklkIjoiZmVpZGU6aGFycnlseEBudG51Lm5vIiwiZW1haWxzIjpbImhhcnJ5LmwueHVAbnRudS5ubyJdLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJhenAiOiIxZmQ4Y2YyNS1iMTNiLTRiYmUtYTY3My04MDk3MjUyOTFjOWMiLCJ2ZXIiOiIxLjAiLCJpYXQiOjE3Nzg2MjE5OTl9.oycGF699zKJ-LYfH-sdjf8qerwI6NC_fiJ1VJk0KVggZl7nkLQ0J8rKJFf0HoUg-DY6YJ_fvfye8BYOZ5qk4rmsEAZbqAGQ_99dq9X-ArncMKk_JQTYYxJK0aJuUUlkavHEsiDlagV_xC6hNdiaz15Zatq7OrjrSDOsSCFy-TC2HD1wNe5L3KXro9Mq9Ils2I5vjvuIQF8fKXxS098QswmFmJQWzc2obMNyTcTOgUimOaRvlzXjTtmZUovUR1w2m576smBoJguUUXLbm0ZWtxJ7DwJ5IvUJr078saTAUzF-Cq7TS6cNatFvUw3q5CFqDV-8RgAVnz3MUvkbGpROZOg"}
 
-# 2026-05-12 23:24:39.737185
-while True: 
-    if datetime.now() > datetime(2026,5,12,23,59,59): 
-    # if datetime.now() > datetime(2026,5,12,23,40,0): 
-        rtnObj = requests.post(url, json=data, headers=headers)
-        print(rtnObj.json()["data"])
-        time.sleep(0.1);
+
+async def send_request(session):
+    try:
+        async with session.post(url, json=data, headers=headers) as response:
+            result = await response.json()
+            print(result["data"])
+
+    except Exception as e:
+        print("Error:", e)
+
+
+async def main():
+    target_time = datetime(2026, 5, 12, 23, 59, 59)
+
+    # Wait until target time
+    while datetime.now() < target_time:
+        await asyncio.sleep(0.01)
+
+    async with aiohttp.ClientSession() as session:
+        while True:
+            asyncio.create_task(send_request(session))
+            await asyncio.sleep(0.1)
+
+
+asyncio.run(main())
